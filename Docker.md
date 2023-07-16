@@ -13,9 +13,9 @@ Docker adalah platform perangkat lunak yang memungkinkan Anda untuk membuat, men
 
 | VM       | CPU     | RAM     | Storage |
 |----------|---------|---------|---------|
-| AppServer      | 2 Core  | 8 GB    | 100 GB  |
-| Gateway        | 4 Core  | 16 GB   | 200 GB  |
-| CI/CD          | 8 Core  | 32 GB   | 500 GB  |
+| AppServer      | 2 Core  | 2 GB    | 20 GB  |
+| Gateway        | 2 Core  | 2 GB   | 20 GB  |
+| CI/CD          | 2 Core  | 2 GB   | 20 GB  |
 
 
 
