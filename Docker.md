@@ -132,6 +132,7 @@ git clone https://github.com/dumbwaysdev/wayshub-backend
 > Setelah membuat jaalan kan perintah ini.
 
 **Docker Push Image**
+
 ![f5e2bdfdd317ab5ca430452c85b05c59.png](_resources/f5e2bdfdd317ab5ca430452c85b05c59.png)
 >Masuk ke docker login jika diminta password dan username silakan masuk 
 
