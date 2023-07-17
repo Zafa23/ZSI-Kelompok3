@@ -6,7 +6,7 @@ Anggota
 ***
 
 # Docker 
-Docker adalah platform perangkat lunak yang memungkinkan Anda untuk membuat, mengemas, dan menjalankan aplikasi secara konsisten di lingkungan yang terisolasi yang disebut "kontainer". Kontainer adalah unit terisolasi yang menjalankan perangkat lunak dan semua dependensinya, termasuk sistem operasi, perpustakaan, dan kode aplikasi. Docker memanfaatkan teknologi containerisasi yang sudah ada di dalam kernel Linux, seperti namespaces dan cgroups, untuk membuat dan mengelola kontainer.
+Docker adalah platform perangkat lunak yang memungkinkan Anda untuk membuat, mengemas, dan menjalankan aplikasi secara konsisten di lingkungan yang terisolasi yang disebut "kontainer". Kontainer adalah unit terisolasi yang menjalankan perangkat lunak dan semua dependensinya, termasuk sistem operasi, perpustakaan, dan kode aplikasi. 
 
 ## Requirements
 - Buat 3 vm dengan spesifikasi sebagai berikut: 
@@ -14,7 +14,7 @@ Docker adalah platform perangkat lunak yang memungkinkan Anda untuk membuat, men
 | VM       | CPU     | RAM     | Storage |
 |----------|---------|---------|---------|
 | AppServer      | 2 Core  | 2 GB    | 20 GB  |
-| Gateway        | 2 Core  | 2 GB   | 20 GB  |
+| Gateway        | 2 Core  | 1 GB   | 20 GB  |
 | CI/CD          | 2 Core  | 2 GB   | 20 GB  |
 
 

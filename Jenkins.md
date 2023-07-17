@@ -46,6 +46,7 @@ private key diletakan pada user Credentials.
 
 ![10.png](Jenkins/10.png)
 ![11.png](Jenkins/11.png)
+![20.png](Jenkins/20.png)
 ![12.png](Jenkins/12.png)
 
 - tambahkan ssh dan discord notifer, discord untuk kalau ada eror atau berhasil build ada info yang masuk di discord kita 
