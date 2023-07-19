@@ -1,5 +1,6 @@
-# Jenkins Top On Docker 
-- Pertama buat docker-compose lalu jalankan docker compose nya 
+![1.png](../_resources/1-1.png)
+>Pertama-tama buat file bernama docker-compose.yml yang isi nya seperti di gambar atau bisa pakai yang telah saya buat, jika sudah jalankan perintah `docker compose up -d`
+
 ```
 version: '3.8'
 services:
@@ -16,56 +17,47 @@ services:
          - ~/jenkins:/var/jenkins_home
 ```
 
-![1.png](Jenkins/1.png)
-![2.png](Jenkins/2.png)
+![2.png](../_resources/2-1.png)
+> Selanjutnya membuat reverse proxy dan memberi certbot pertama buatlah file di gateway `cd /etc/nginx`dengan type configurasi atau kalian bisa salin saja `sudo nano jenkins.conf` jika sudah ikuti langkah langkah pasang cert bot lewat documentasion ini [Certbot](https://certbot.eff.org/instructions?ws=nginx&os=ubuntufocal)
 
-![3.png](Jenkins/3.png)
-> perhatian: Jika kalian ga tau dimana posisi penimpanan password nya
 
-![4.png](Jenkins/4.png)
->jika sudah mari kita atur untuk reverse proxy nya biar bisa diakses dengan domain yang kita mau
+![3.png](../_resources/3-1.png)
+> Jika kalian tidak bisa menemukan isi dari file initialAdminPassword kalian bisa mencari nya dengan memasukan rumus find disini sebagai contoh saja `sudo find . -name "initialAdminPassword" -type f` jika sudah kalian akan mendapatkan posisi dimana file initialAdminPassword diletakan setelah itu kalian bisa menggunakan rumus cat dan menggabungkan dengan hasil dari rumus find nya yang tadi
 
-![5.png](Jenkins/5.png)
-> Jika sudah ketemu password nya paste kesini 
 
-![6.png](Jenkins/6.png) 
+![4.png](../_resources/4-1.png)
+>Disini kalian cukup ceklis sebelumnya yaitu yang diutamakan ssh-agent,git,pipeline jika telanjur bisa di dalam setelah instalasion selesai
 
-![7.png](Jenkins/7.png)
-> setelah memilih plugin akan lanjut seperti ini dan kita harus menunggu sampai selesai
 
-![8.png](Jenkins/8.png)
-> Masukan domain yang udah kita buat di gateway vm
+![5.png](../_resources/5-1.png)
+> Jika sudah kalian cukup buat akun baru selayaknya kalian bikin akun pada umumnya 
 
-# Menghubungkan Jenkins Dengan Server
-- Kemudian Konfigurasi Manage Credentials dan hubungkan Jenkins dengan VPS server dengan menambahkan ssh-keygen.
-> public key dimasukan di dalam authorized keys.
-private key diletakan pada user Credentials.
 
-![9.png](Jenkins/9.png)
->Jika sudah pilih manage jenkins
+![6.png](../_resources/6-1.png)
+> masukan konfigurasi domain yang tadi sudah dibuat sebelumnya 
 
-![10.png](Jenkins/10.png)
-![11.png](Jenkins/11.png)
-![20.png](Jenkins/20.png)
-![12.png](Jenkins/12.png)
 
-- tambahkan ssh dan discord notifer, discord untuk kalau ada eror atau berhasil build ada info yang masuk di discord kita 
+![7.png](../_resources/7-1.png)
+> Disini kita akan menghubungkan antara jenkins dengan appserver menggunakan id_rsa private kalian atau kalian bisa mengikuti step ini
+>  `cat .ssh/id_rsa` selanjutnya kalian tempel di dalam sini dan isi seperti di gambar 
 
-![13.png](Jenkins/13.png)
 
-# Membuat File Jenkinsfile di frontend dan backend
-![14.png](Jenkins/14.png)
-> Selanjutnya buat Jenkinsfile, dan masukan seperti diatas ini
+![8.png](../_resources/8-1.png)
+> disini karna ssh-agent sudah terceklis diawal kita cukup memasukan discord agar ketika kita membuild nanti frontend atau backend bisa di masukan di grup discord kita dan akan ada notif berhasil atau gagal nya 
 
-`frontend`
+
+
+![9.png](../_resources/9-1.png)
+> Disini kita masuk ketahap membuat file frontend nanti akan ku jelaskan isi dari si file ini kalian bisa pakai kode ini salin kode nya di bawah  
+
 ```
 def branch = "main"
 def repo = "https://github.com/Zafa23/wayshub-frontend.git"
-def cred = "appserver"
+def cred = "apserver"
 def dir = "~/wayshub-frontend"
-def server = "kel3@116.193.190.143"
+def server = "zafar@103.82.92.255"
 def imagename = "wayshub-fe"
-def dockerusername = "zsikelompok3"
+def dockerusername = "zafarassidiq"
 
 pipeline {
     agent any
@@ -85,7 +77,7 @@ pipeline {
             }
         }
 
-    stage('Dockerize') {
+        stage('Dockerize') {
             steps {
                 sshagent([cred]) {
                     sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
@@ -103,11 +95,9 @@ pipeline {
                 sshagent([cred]) {
                     sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
                         cd ${dir}
-                        docker container stop ${imagename}
-                        docker container rm ${imagename}
-                        docker run -d -p 3000:3000 --name="${imagename}"  ${imagename}:latest
-                        docker container stop ${imagename}
-                        docker container rm ${imagename}
+                        docker stop ${imagename} || true
+                        docker rm ${imagename} || true
+                        docker run -d -p 3000:3000 --name=${imagename} ${imagename}:latest
                         exit
                         EOF
                     """
@@ -117,32 +107,52 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-               sshagent([cred]) {
-			    sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
-				    docker tag ${imagename}:latest ${dockerusername}/${imagename}:latest
-				    docker image push ${dockerusername}/${imagename}:latest
-				    docker image rm ${dockerusername}/${imagename}:latest
-				    docker image rm ${imagename}:latest
-				    exit
-                    EOF
-			"""
-		        }
+                sshagent([cred]) {
+                    sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
+                        docker tag ${imagename}:latest ${dockerusername}/${imagename}:latest
+                        docker login -u ${dockerusername} -p DOCKER_PASSWORD
+                        docker push ${dockerusername}/${imagename}:latest
+                        exit
+                        EOF
+                    """
+                }
             }
         }
     }
 }
 ```
 
+>Note : Disini saya membuat juga versi penjelasan dari kode yang saya buat berikut link nya [Frontend](https://github.com/Zafa23/ZSI-Kelompok3/blob/main/Penjelasan-Kode-Frontend.md)
 
-`backend`
+
+![10.png](../_resources/10-1.png)
+> Disini buatlah pipeline berjudul wayshub-fe atau kalian mau itu bebas sesuai penamaan aplikasi dan file saja yang saya ambil, dikarenakan saya mau mengotomasikan atau pengujian dari aplikasi wayshub pada folder frontend maka saya namakan wayshub-fe
+
+
+
+![11.png](../_resources/11-1.png)
+> Disini masukan seperti di gambar saja 
+
+
+
+
+![12.png](../_resources/12-1.png)
+> jika sudah sekarang build now dan tunggu sampai selesai jika ada keslahan kalian bisa arahkan cursor kalian ke bagian yang failed itu dan nanti akan muncul logs dan kalian pencet saja logs nya maka akan muncul perintah eror nya dan klian bisa perbaiki 
+
+
+
+
+![13.png](../_resources/13-1.png)
+> Dan sekarang buatlah file di backend dengan sama seperti di frontend yaitu `nano Jenkinsfile` dan masukan kode ini atau kalian bisa mencari sesuai tugas kalian 
+
 ```
 def branch = "main"
-def repo = "https://github.com/Zafa/wayshub-backend.git"
+def repo = "https://github.com/Zafa23/wayshub-backend.git"
 def cred = "appserver"
 def dir = "~/wayshub-backend"
-def server = "kel1@103.13.206.133"
+def server = "zafar@103.82.92.255"
 def imagename = "wayshub-be"
-def dockerusername = "myyngstwn"
+def dockerusername = "zafarassidiq"
 
 pipeline {
     agent any
@@ -162,7 +172,7 @@ pipeline {
             }
         }
 
-    stage('Dockerize') {
+        stage('Dockerize') {
             steps {
                 sshagent([cred]) {
                     sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
@@ -180,11 +190,9 @@ pipeline {
                 sshagent([cred]) {
                     sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
                         cd ${dir}
-                        docker container stop ${imagename}
-                        docker container rm ${imagename}
-                        docker run -d -p 5000:5000 --name="${imagename}"  ${imagename}:latest
-                        docker container stop ${imagename}
-                        docker container rm ${imagename}
+                        docker stop ${imagename} || true
+                        docker rm ${imagename} || true
+                        docker run -d -p 5000:5000 --name=${imagename} ${imagename}:latest
                         exit
                         EOF
                     """
@@ -194,33 +202,33 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-               sshagent([cred]) {
-			    sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
-				    docker tag ${imagename}:latest ${dockerusername}/${imagename}:latest
-				    docker image push ${dockerusername}/${imagename}:latest
-				    docker image rm ${dockerusername}/${imagename}:latest
-				    docker image rm ${imagename}:latest
-				    exit
-                    EOF
-			"""
-		        }
+                sshagent([cred]) {
+                    sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
+                        docker tag ${imagename}:latest ${dockerusername}/${imagename}:latest
+                        docker login -u ${dockerusername} -p DOCKER_PASSWORD
+                        docker push ${dockerusername}/${imagename}:latest
+                        exit
+                        EOF
+                    """
+                }
             }
         }
     }
 }
 ```
+> Note : Untuk penjelasan hampir sama kaya frontend ya karna disini perintah nya sama yaitu 
 
-# Membuat pipeline 
+- [x] Pull dari repository kita
+- [x] Dockerize aplikasi kita
+- [x]  Deploy aplikasi on top Docker
+- [x] Push ke Docker Hu  
 
-- Kemudian pilih pipeline dan beri nama sesuai aplikasi.
+![14.png](../_resources/14-1.png)
+>jika sudah semua lakukan sama yaitu build 
 
-- Masukkan ssh url github, branch dan dll. Hal ini dikarenakan setiap mengalami perubahan, penambahan pada Jenkinsfile harus di add, commit dan push ke akun github yang sudah di setting di server.
+![15.png](../_resources/15-1.png)
+>lalu periksa apakah sudah ada folder kita di dockerhub kita
 
-- Kemudian save. Jika Jenkinsfile sudah di tambahkan ke dalam repository. bisa langsung menekan build now. ketika di build bisa melihat error di bagian logs sesuai dengan stage yg di jalankan.
 
-
-![15.png](Jenkins/15.png)
-![16.png](Jenkins/16.png)
-![17.png](Jenkins/17.png)
-![18.png](Jenkins/18.png)
-![19.png](Jenkins/19.png)
+![17.png](../_resources/17-1.png)
+> Dan jangan lupa untuk buat auto triger, jika ada sesuatu atau peristiwa yang memungkinkan tindakan otomatis atau skrip untuk dijalankan secara otomatis ketika ada peristiwa tertentu terjadi dalam repositori GitHub. 
