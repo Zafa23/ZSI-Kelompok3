@@ -137,7 +137,7 @@ pipeline {
 `backend`
 ```
 def branch = "main"
-def repo = "https://github.com/myayangs/wayshub-backend.git"
+def repo = "https://github.com/Zafa/wayshub-backend.git"
 def cred = "appserver"
 def dir = "~/wayshub-backend"
 def server = "kel1@103.13.206.133"
